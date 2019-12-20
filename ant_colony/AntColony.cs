@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace ant_colony
@@ -9,26 +10,42 @@ namespace ant_colony
 
         Random random = new Random();
 
-        static int[,] data = { { 0, 745, 665, 929 }, { 745, 0, 80, 337 }, { 665, 80, 0, 380 }, { 929, 337, 380, 0 } };
+        static Item[] data = new Item[10];
 
         double[,] pheramones;
 
-        Path[] paths;
+        Bag[] paths;
 
         int N;
         double alpha;
         double beta;
-        int CityCount;
+        int BagWeight;
         double Q = 0;
 
-        public AntColony(int N = 2, double Q = 100, double alpha = 1, double beta = 1)
+        public AntColony(string path, int N = 2, double Q = 100, double alpha = 1, double beta = 1)
         {
             this.Q = Q;
             this.N = N;
             this.alpha = alpha;
             this.beta = beta;
-            this.CityCount = data.GetLength(0);
-            this.paths = new Path[N];
+            this.paths = new Bag[N];
+            readFile(path);
+
+        }
+
+        private void readFile(string path)
+        {
+            string[] lines = File.ReadAllLines(path);
+            BagWeight = int.Parse(lines[0]);
+
+            string[] weights = lines[2].Split(' ').Where(val => val != "").ToArray();
+            string[] values = lines[4].Split(' ').Where(val => val != "").ToArray();
+
+            data = new Item[weights.Count()];
+
+            for (int i = 0; i < weights.Count(); i++) {
+                data[i] = new Item(i, int.Parse(weights[i]), int.Parse(values[i]));
+            }
 
         }
 
@@ -44,26 +61,21 @@ namespace ant_colony
             List<int> randomed = new List<int>();
             for (int i = 0; i < N; i++) {
 
-                int r = random.Next(0, CityCount);
-
-                while(randomed.Contains(r)) {
-                    r = random.Next(0, CityCount);
-                }
+                int r = random.Next(0, data.Length);
 
                 randomed.Add(r);
-             
-            
-                paths[i] = new Path(r);
+
+                paths[i] = new Bag(data[r]);
             }
         }
 
         private void initilizePheramons()
         {
-            pheramones = new double[CityCount, CityCount];
+            pheramones = new double[data.Length, data.Length];
 
-            for (int i = 0; i < CityCount; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                for (int j = 0; j < CityCount; j++)
+                for (int j = 0; j < data.Length; j++)
                 {
                     if (i == j)
                     {
@@ -81,111 +93,91 @@ namespace ant_colony
         public void moveAnts()
         {
             double[,] posses = calcPossibility();
-            foreach (Path path in paths) {
+            foreach (Bag path in paths) {
                 moveAnt(path, posses);
                 //updatePheramones(path);
                 Console.WriteLine(path);
             }
 
-            foreach (Path path in paths)
+            foreach (Bag path in paths)
             {
                 updatePheramones(path);
             }
         }
 
 
-        private void updatePheramone(int i, int j, double value)
+        private void updatePheramone(Item i, Item j, double value)
         {
-            pheramones[i, j] = Q / value;
-            pheramones[j, i] = Q / value;
+            pheramones[i.pos, j.pos] = Q / value;
+            pheramones[j.pos, i.pos] = Q / value;
         }
 
-        private void updatePheramones(Path path)
+        private void updatePheramones(Bag path)
         {
-            for (int i = 0; i < path.next.Count; i++) {
-                if (i == path.next.Count - 1) {
-                    updatePheramone(path.next[i], path.next[0], Q / data[path.next[i], path.next[0]]);
+            for (int i = 0; i < path.bag.Count; i++) {
+                if (i == path.bag.Count - 1) {
+                    updatePheramone(path.bag[i], path.bag[0], Q / cos(path.bag[i].pos, path.bag[0].pos));
                     continue;
                 }
-                updatePheramone(path.next[i], path.next[i + 1], Q / data[path.next[i], path.next[i + 1]]);
+                updatePheramone(path.bag[i], path.bag[i + 1], Q / cos(path.bag[i].pos, path.bag[i + 1].pos));
             }
         }
 
-
-        private bool isAddedBefore(int current, Path path,int step)
-        {
-            int checkIndex = step+1;
-
-            foreach (Path p in paths) {
-                if (p == path) {
-                    continue;
-                }
-
-                if (p.next.Count > checkIndex && p.next[checkIndex] == current) {
-                    if (p.next.Count == CityCount - 1) { }
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void moveAnt(Path path, double[,] posses)
+        private void moveAnt(Bag bag, double[,] posses)
         {
             int step = 0;
-            while (path.next.Count < CityCount-1) {
+            while (bag.bag.Count <  data.Length-1) {
 
                 double rand = random.NextDouble();
                 
-                for (int i = 0; i < CityCount; i++)
+                for (int i = 0; i <  data.Length; i++)
                 {
-                    if (path.getCurrent() == i || path.next.Contains(i) || isAddedBefore(i,path,step))
+                    if (bag.LastPos() == i || bag.bag.Contains(data[i]))
                     {
                         continue;
                     }
-                    rand = rand - posses[path.getCurrent(), i];
+                    rand = rand - posses[bag.LastPos(), i];
                     if (rand <= 0)
                     {
                         step++;
-                        path.addNext(i);
+                        bag.addItem(data[i]);
                         break;
                     }
                 }
-
             }
-            List<int> diffValue = Enumerable.Range(0, CityCount).ToList().Except(path.next).ToList();
-            path.addNext(diffValue[0]);
 
         }
 
 
         double[,] calcPossibility()
         {
-            double[,] posses = new double[CityCount, CityCount];
+            double[,] posses = new double[data.Length, data.Length];
             double total = totalPoss();
-            for (int i = 0; i < CityCount; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                for (int j = 0; j < CityCount; j++)
+                for (int j = 0; j < data.Length; j++)
                 {
                     if (i == j) {
                         continue;
                     }
-                    posses[i,j] = possibility(i, j, total);
+                    posses[i, j] = possibility(i, j, total);
                 }
             }
             return posses;
 
         }
 
+
         double totalPoss() {
             double totalPoss = 0;
-            for (int i = 0; i < CityCount; i++) {
-                for (int j = 0; j < CityCount; j++)
+            for (int i = 0; i < data.Length; i++) {
+                for (int j = 0; j < data.Length; j++)
                 {
                     if (i == j) {
                         continue;
                     }
                     double tij = Math.Pow(pheramones[i, j], alpha);
-                    double nij = Math.Pow(1.0 / data[i, j], beta);
+                    double nij = Math.Pow(1.0 / cos(i,j), beta);
                     double pab = (tij * nij);
                     totalPoss = totalPoss + pab;
                 }
@@ -193,59 +185,98 @@ namespace ant_colony
             return totalPoss;
         }
 
-        double possibility(int a,int b,double totalPoss)
+        double possibility(int a, int b, double totalPoss)
         {
             double tij = Math.Pow(pheramones[a, b], alpha);
-            double nij = Math.Pow(1.0 / data[a, b], beta);
+            double nij = Math.Pow(1.0 / cos(a, b), beta);
             double pab = (tij * nij);
             return pab / (totalPoss - pab);
         }
 
-  
-        class Path
+        double cos(int i , int j)
         {
-            public List<int> next = new List<int>();
-            private int distance;
+            return data[i].value + data[j].value;
+        }
 
-            public Path(int initialPoint)
-            {
-                this.next.Add(initialPoint);
+        class Bag
+        {
+            public List<Item> bag = new List<Item>();
+            private int value;
+            private int weight;
+
+            public Bag(Item item){
+                bag.Add(item);
+                value = item.value;
+                weight = item.weight;
             }
 
-            public int getCurrent()
+
+
+            public int LastPos()
             {
-                return next[next.Count - 1];
+                return bag.Last().pos;
             }
 
-            public bool addNext(int city)
+            public Item Last()
             {
-                if (next.Contains(city))
+                return bag.Last();
+            }
+
+            public bool addItem(Item item)
+            {
+                if (bag.Contains(item))
                 {
                     return false;
                 }else{
-                    distance = distance + data[getCurrent(), city];
-                    next.Add(city);
+                    value = value + item.value;
+                    weight = weight + item.weight;
+                    bag.Add(item);
                     return true;
                 }
             }
 
-            public int getDistance() {
-                return distance + data[getCurrent(), next[0]];
+            public int getWeight() {
+                return weight;
+            }
+
+            public int getValue()
+            {
+                return value;
             }
 
             public override string ToString()
             {
                 string path = "";
-                foreach(int i in next)
+                foreach(Item i in bag)
                 {
-                    path = path + i + " -> ";
+                    path = path + i.pos + "-";
                 }
 
-                path = path + "| distance: " + getDistance();
+                path = path + "| weight: " + getWeight() + " value: "+getValue();
                 
                 return path;
             }
 
+        }
+
+        class Item {
+            public int pos;
+            public int value;
+            public int weight;
+            public double ratio;
+
+            public Item(int pos,int value,int weight)
+            {
+                this.pos = pos;
+                this.value = value;
+                this.weight = weight;
+                this.ratio = (value * 1.0) / weight;
+            }
+
+            public override int GetHashCode()
+            {
+                return pos;
+            }
 
         }
 

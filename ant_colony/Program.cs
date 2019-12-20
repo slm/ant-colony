@@ -10,7 +10,7 @@ namespace ant_colony
        
         public static void Main(string[] args)
         {
-            AntColony colony = new AntColony();
+            AntColony colony = new AntColony("Testbed/test1.txt");
             colony.initilize();
             for (int i = 0; i < 10; i++) {
                 Console.WriteLine("---------" + i + "---------");
