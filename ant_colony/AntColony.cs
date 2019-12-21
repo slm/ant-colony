@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace ant_colony
+namespace ant_colonyy
 {
     public class AntColony
     {
 
-        Random random = new Random();
+        Random random = new Random(12);
 
-        static Item[] data = new Item[10];
+        Item[] data = new Item[10];
 
         double[,] pheramones;
 
@@ -19,7 +20,7 @@ namespace ant_colony
         int N;
         double alpha;
         double beta;
-        int BagWeight;
+        static int BagWeight;
         double Q = 0;
 
         public AntColony(string path, int N = 2, double Q = 100, double alpha = 1, double beta = 1)
@@ -43,6 +44,8 @@ namespace ant_colony
 
             data = new Item[weights.Count()];
 
+            Array.Sort(data);
+
             for (int i = 0; i < weights.Count(); i++) {
                 data[i] = new Item(i, int.Parse(weights[i]), int.Parse(values[i]));
             }
@@ -54,7 +57,6 @@ namespace ant_colony
             initilizePheramons();
             initilizePaths();
         }
-
 
         public void initilizePaths()
         {
@@ -92,7 +94,7 @@ namespace ant_colony
 
         public void moveAnts()
         {
-            double[,] posses = calcPossibility();
+            double[] posses = calcPossibility();
             foreach (Bag path in paths) {
                 moveAnt(path, posses);
                 //updatePheramones(path);
@@ -108,60 +110,50 @@ namespace ant_colony
 
         private void updatePheramone(Item i, Item j, double value)
         {
-            pheramones[i.pos, j.pos] = Q / value;
-            pheramones[j.pos, i.pos] = Q / value;
+            pheramones[i.pos, j.pos] = pheramones[i.pos, j.pos] + (Q/value);
+            pheramones[j.pos, i.pos] = pheramones[j.pos, i.pos] + (Q/value);
         }
 
         private void updatePheramones(Bag path)
         {
             for (int i = 0; i < path.bag.Count; i++) {
                 if (i == path.bag.Count - 1) {
-                    updatePheramone(path.bag[i], path.bag[0], Q / cos(path.bag[i].pos, path.bag[0].pos));
+                    updatePheramone(path.GetItem(i), path.GetItem(0), cos(path.GetItem(i).pos, path.GetItem(0).pos));
                     continue;
                 }
-                updatePheramone(path.bag[i], path.bag[i + 1], Q / cos(path.bag[i].pos, path.bag[i + 1].pos));
+                updatePheramone(path.GetItem(i), path.GetItem(i+1),cos(path.GetItem(i).pos, path.GetItem(i+1).pos));
             }
         }
 
-        private void moveAnt(Bag bag, double[,] posses)
+        private void moveAnt(Bag bag, double[] posses)
         {
-            int step = 0;
-            while (bag.bag.Count <  data.Length-1) {
+
+            while (bag.getWeight() <= BagWeight && !bag.isVisitedAll(data)) {
 
                 double rand = random.NextDouble();
                 
                 for (int i = 0; i <  data.Length; i++)
                 {
-                    if (bag.LastPos() == i || bag.bag.Contains(data[i]))
-                    {
-                        continue;
-                    }
-                    rand = rand - posses[bag.LastPos(), i];
+                    rand = rand - posses[i];
                     if (rand <= 0)
                     {
-                        step++;
                         bag.addItem(data[i]);
                         break;
                     }
                 }
+              
             }
 
         }
 
 
-        double[,] calcPossibility()
+        double[] calcPossibility(int lastPos)
         {
-            double[,] posses = new double[data.Length, data.Length];
-            double total = totalPoss();
+            double[] posses = new double[data.Length];
+   
             for (int i = 0; i < data.Length; i++)
             {
-                for (int j = 0; j < data.Length; j++)
-                {
-                    if (i == j) {
-                        continue;
-                    }
-                    posses[i, j] = possibility(i, j, total);
-                }
+                posses[i] = possibility(i, lastPos, total);
             }
             return posses;
 
@@ -176,8 +168,9 @@ namespace ant_colony
                     if (i == j) {
                         continue;
                     }
-                    double tij = Math.Pow(pheramones[i, j], alpha);
-                    double nij = Math.Pow(1.0 / cos(i,j), beta);
+                    double cs = cos(i, j);
+                    double tij = Math.Pow(pheramones[i, j], alpha);//
+                    double nij = Math.Pow(cs, beta);
                     double pab = (tij * nij);
                     totalPoss = totalPoss + pab;
                 }
@@ -185,22 +178,26 @@ namespace ant_colony
             return totalPoss;
         }
 
-        double possibility(int a, int b, double totalPoss)
+        double possibility(int a ,int lastPos double totalPoss)
         {
-            double tij = Math.Pow(pheramones[a, b], alpha);
-            double nij = Math.Pow(1.0 / cos(a, b), beta);
+            double cs = cos(lastPos, a);
+            double tij = Math.Pow(pheramones[, b], alpha);
+            double nij = Math.Pow(cs, beta);
             double pab = (tij * nij);
             return pab / (totalPoss - pab);
         }
 
         double cos(int i , int j)
         {
-            return data[i].value + data[j].value;
+            return (data[i].value/ (data[i].weight * data[i].weight )) - (data[j].value / (data[j].weight * data[j].weight));
         }
+
 
         class Bag
         {
             public List<Item> bag = new List<Item>();
+            private List<int> shadow = new List<int>();
+            private HashSet<int> visited = new HashSet<int>();
             private int value;
             private int weight;
 
@@ -208,9 +205,14 @@ namespace ant_colony
                 bag.Add(item);
                 value = item.value;
                 weight = item.weight;
+                visited.Add(item.pos);
             }
 
-
+            public Item GetItem(int pos)
+            {
+                return bag.ToList()[pos];
+            }
+            
 
             public int LastPos()
             {
@@ -222,17 +224,32 @@ namespace ant_colony
                 return bag.Last();
             }
 
+            public bool isVisited(Item item) {
+                return visited.Contains(item.pos);
+            }
+
+            public bool isVisitedAll(Item[] data) {
+                return data.Length == visited.Count;
+            }
+
+            public bool canAdd(Item item,int limit) {
+                return item.weight + weight < limit;
+            }
+
             public bool addItem(Item item)
             {
-                if (bag.Contains(item))
-                {
+
+                if (shadow.Contains(item.pos)) {
                     return false;
-                }else{
-                    value = value + item.value;
-                    weight = weight + item.weight;
-                    bag.Add(item);
-                    return true;
                 }
+
+                shadow.Add(item.pos);
+                bag.Add(item);
+                value = value + item.value;
+                weight = weight + item.weight;
+                
+                return true;
+                
             }
 
             public int getWeight() {
@@ -259,7 +276,7 @@ namespace ant_colony
 
         }
 
-        class Item {
+        class Item: IComparable{
             public int pos;
             public int value;
             public int weight;
@@ -278,6 +295,15 @@ namespace ant_colony
                 return pos;
             }
 
+            public override bool Equals(object obj)
+            {
+                return pos == (obj as Item).pos;
+            }
+
+            public int CompareTo(object obj)
+            {
+                return ratio.CompareTo((obj as Item).ratio);
+            }
         }
 
     }
