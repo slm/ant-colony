@@ -17,7 +17,7 @@ namespace ant_colony
         {
             var stopwatch = Stopwatch.StartNew();
             Thread[] array = new Thread[10];
-            for (int k = 0; k < 10; k++)
+            for (int k = 0; k < 1; k++)
             {
                 runCase(k);
             }
@@ -30,7 +30,7 @@ namespace ant_colony
             ACO colony = new ACO("Testbed/test"+k+".txt");
             var stopwatch = Stopwatch.StartNew();
             Console.WriteLine("------ start running of file test"+k+".txt -----");
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 colony.solve();
             }
