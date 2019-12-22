@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Extensions;
 
 namespace ant_colony
 {
     public class ACO
     {
-        public List<int> result = new List<int>();
-        List<int> time = new List<int>();
+        public List<Bag> results = new List<Bag>();
+        
 
         Random random = new Random();
 
@@ -25,7 +26,7 @@ namespace ant_colony
         int N;
         double Q = 0;
 
-        public ACO(string path, int N = 10, double Q = 100, double alpha = 1, double beta = 1)
+        public ACO(string path, int N = 100, double Q = 100, double alpha = 1, double beta = 1)
         {
             this.Q = Q;
             this.alpha = alpha;
@@ -35,6 +36,20 @@ namespace ant_colony
             readFile(path);
             initilize(N);
         }
+
+        public Bag getBestBag()
+        {
+            return results.MaxBy(t => t.getValue());
+        }
+        
+        public double getAvarage()
+        {
+            return results.Average(t => t.getValue());
+        }
+        
+        
+        
+   
 
         public void initilize(int N)
         {
@@ -69,8 +84,8 @@ namespace ant_colony
             string[] lines = File.ReadAllLines(path);
             BagWeight = int.Parse(lines[0]);
 
-            string[] weights = lines[2].Split(' ').Where(val => val != "").ToArray();
-            string[] values = lines[4].Split(' ').Where(val => val != "").ToArray();
+            string[] weights = lines[4].Split(' ').Where(val => val != "").ToArray();
+            string[] values = lines[2].Split(' ').Where(val => val != "").ToArray();
 
 
             for (int i = 0; i < weights.Count(); i++)
@@ -151,23 +166,19 @@ namespace ant_colony
             while (available.Count > 0)
             {
                 double rand = random.NextDouble() * maxPoss;
-                Item lastItem = bag.Last();
                 foreach (var item in available)
                 {
                     rand = rand - posses[item.pos];
                     if (rand <= 0)
                     {
-                        lastItem = item;
                         bag.addItem(item);
                         break;
                     }
                 }
-
                 available = bag.AvailableItems();
             }
 
-            result.Add(bag.getValue());
-            //Console.WriteLine(bag.id + " -> move ant");
+            results.Add(bag);
         }
 
         double[] calcPossibility(out double m)
@@ -208,12 +219,10 @@ namespace ant_colony
             return data[i].value/Math.Pow(data[i].weight,2);
         }
 
-        class Bag
+        public class Bag
         {
-            private static int bag_id = 0;
             public int id;
             public List<Item> bag = new List<Item>();
-            private List<int> shadowBag = new List<int>();
             private List<Item> availableItems;
             public Item last;
 
@@ -223,7 +232,7 @@ namespace ant_colony
 
             public Bag(Item firstItem, List<Item> data, int maxSize)
             {
-                id = ++bag_id;
+                id = DateTime.Now.Millisecond;
                 last = firstItem;
                 bag.Add(firstItem);
                 value = firstItem.value;
@@ -248,25 +257,18 @@ namespace ant_colony
                 return last;
             }
 
-            public bool canAdd(Item item)
-            {
-                return item.weight + weight < maxSize;
-            }
-
             public bool addItem(Item item)
             {
-                if (shadowBag.Contains(item.pos))
-                {
-                    return false;
-                }
-
-                shadowBag.Add(item.pos);
+                
                 bag.Add(item);
                 last = item;
+                
                 value = value + item.value;
                 weight = weight + item.weight;
+                
                 availableItems.Remove(item);
                 updateAvailableItems();
+                
                 return true;
             }
 
@@ -281,6 +283,12 @@ namespace ant_colony
                 return availableItems;
             }
 
+            
+            public int getEmptySpace()
+            {
+                return maxSize-weight;
+            }
+            
             public int getWeight()
             {
                 return weight;
@@ -289,6 +297,21 @@ namespace ant_colony
             public int getValue()
             {
                 return value;
+            }
+
+            public int getRawValue()
+            {
+                return bag.Sum(x=>x.value);
+            }
+            
+            public int getRawWeight()
+            {
+                return bag.Sum(x=>x.weight);
+            }
+
+            public List<int> getDuplicates()
+            {
+                return bag.FindDuplicates(x=>x.pos);
             }
 
             public override string ToString()
@@ -305,7 +328,7 @@ namespace ant_colony
             }
         }
 
-        class Item : IComparable
+        public class Item : IComparable
         {
             public int pos;
             public int value;
@@ -336,4 +359,6 @@ namespace ant_colony
             }
         }
     }
+    
+    
 }

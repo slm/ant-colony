@@ -17,7 +17,7 @@ namespace ant_colony
         {
             var stopwatch = Stopwatch.StartNew();
             Thread[] array = new Thread[10];
-            for (int k = 0; k < 1; k++)
+            for (int k = 0; k < 3; k++)
             {
                 runCase(k);
             }
@@ -34,10 +34,18 @@ namespace ant_colony
             {
                 colony.solve();
             }
+
+
+            var bestBag = colony.getBestBag();
             
-            Console.WriteLine("Max:"+colony.result.Max()+" "+stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("Best value:"+bestBag.getValue()+"| Best weight: "+ bestBag.getWeight()+" - "+bestBag.getEmptySpace()+"| duration:"+stopwatch.ElapsedMilliseconds);
+            //Console.WriteLine("Best bag:"+bestBag);
+
             Console.WriteLine("------ stop running of file test"+k+".txt -----");
         }
+
+
+       
 
     }
 
