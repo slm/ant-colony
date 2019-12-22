@@ -1,6 +1,7 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.181
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ant_colony", "ant_colony\ant_colony.csproj", "{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}"
 EndProject
 Global
@@ -9,9 +10,15 @@ Global
 		Release|anycpu = Release|anycpu
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Debug|anycpu.ActiveCfg = Debug|anycpu
-		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Debug|anycpu.Build.0 = Debug|anycpu
-		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Release|anycpu.ActiveCfg = Release|anycpu
-		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Release|anycpu.Build.0 = Release|anycpu
+		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Debug|anycpu.ActiveCfg = Debug|Any CPU
+		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Debug|anycpu.Build.0 = Debug|Any CPU
+		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Release|anycpu.ActiveCfg = Release|Any CPU
+		{DDD010B9-16CC-46DB-8D2A-3FD48D45A95E}.Release|anycpu.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A1D56DA-832A-40A5-AE01-DA0087925604}
 	EndGlobalSection
 EndGlobal

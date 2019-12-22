@@ -26,7 +26,7 @@ namespace ant_colony
         int N;
         double Q = 0;
 
-        public ACO(string path, int N = 100, double Q = 100, double alpha = 1, double beta = 1)
+        public ACO(string path, int N = 2, double Q = 100, double alpha = 1, double beta = 1)
         {
             this.Q = Q;
             this.alpha = alpha;

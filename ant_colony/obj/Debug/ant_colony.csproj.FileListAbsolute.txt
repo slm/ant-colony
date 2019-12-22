@@ -3,3 +3,8 @@
 /Users/selimyildiz/Projects/ant_colony/ant_colony/obj/Debug/ant_colony.csprojAssemblyReference.cache
 /Users/selimyildiz/Projects/ant_colony/ant_colony/obj/Debug/ant_colony.exe
 /Users/selimyildiz/Projects/ant_colony/ant_colony/obj/Debug/ant_colony.pdb
+C:\Users\samet\Documents\GitHub\ant-colony\ant_colony\bin\Debug\ant_colony.exe
+C:\Users\samet\Documents\GitHub\ant-colony\ant_colony\bin\Debug\ant_colony.pdb
+C:\Users\samet\Documents\GitHub\ant-colony\ant_colony\obj\Debug\ant_colony.csprojAssemblyReference.cache
+C:\Users\samet\Documents\GitHub\ant-colony\ant_colony\obj\Debug\ant_colony.exe
+C:\Users\samet\Documents\GitHub\ant-colony\ant_colony\obj\Debug\ant_colony.pdb

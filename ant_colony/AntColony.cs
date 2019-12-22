@@ -178,10 +178,10 @@ namespace ant_colonyy
             return totalPoss;
         }
 
-        double possibility(int a ,int lastPos double totalPoss)
+        double possibility(int a ,int lastPos ,double totalPoss)
         {
             double cs = cos(lastPos, a);
-            double tij = Math.Pow(pheramones[, b], alpha);
+            double tij = Math.Pow(pheramones[a, b], alpha);
             double nij = Math.Pow(cs, beta);
             double pab = (tij * nij);
             return pab / (totalPoss - pab);
