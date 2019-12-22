@@ -30,7 +30,7 @@ namespace ant_colony
             ACO colony = new ACO("Testbed/test"+k+".txt");
             var stopwatch = Stopwatch.StartNew();
             Console.WriteLine("------ start running of file test"+k+".txt -----");
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 colony.solve();
             }
