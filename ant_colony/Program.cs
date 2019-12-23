@@ -69,7 +69,7 @@ namespace ant_colony
 
 
                 
-                String x = ""+bestBag.getValue() + "  "  + bestBag.getEmptySpace()+"  " + stopwatch.ElapsedMilliseconds;
+                String x = ""+bestBag.getValue() + "  "  + colony.getAvarage()+"  Total süre-->" + stopwatch.ElapsedMilliseconds;
                 sw.Write(x);
                 sw.Close();
 
