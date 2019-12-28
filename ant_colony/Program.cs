@@ -5,8 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System;
-using System.IO;
+
 using System.Threading.Tasks;
 using Extensions;
 using static System.Net.Mime.MediaTypeNames;
@@ -51,7 +50,7 @@ namespace ant_colony
             ACO colony = new ACO("Testbed/test"+k+".txt");
             var stopwatch = Stopwatch.StartNew();
             Console.WriteLine("------ start running of file test"+k+".txt -----");
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 1; i++)
             {
                 colony.solve();
             }
@@ -69,7 +68,7 @@ namespace ant_colony
 
 
                 
-                String x = ""+bestBag.getValue() + "  "  + colony.getAvarage()+"  Total süre-->" + stopwatch.ElapsedMilliseconds;
+                String x = ""+bestBag.getValue() + "  "  + colony.getAvarage()+"  "+ stopwatch.ElapsedMilliseconds;
                 sw.Write(x);
                 sw.Close();
 
