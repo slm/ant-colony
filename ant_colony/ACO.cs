@@ -24,15 +24,19 @@ namespace ant_colony
         double beta;
         static int BagWeight;
         int N;
-        double Q = 0;
+        double Q;
+        private double p;
+        private int iteration;
 
-        public ACO(string path, int N = 2, double Q = 100, double alpha = 1, double beta = 1)
+        public ACO(string path, int N = 200, double Q = 100, double alpha = 0.5, double beta = 0.5,double p = 0.2,int iteration=500)
         {
             this.Q = Q;
             this.alpha = alpha;
             this.beta = beta;
             this.N = N;
             this.paths = new Bag[N];
+            this.iteration = iteration;
+            this.p = p;
             readFile(path);
             initilize(N);
         }
@@ -96,33 +100,38 @@ namespace ant_colony
 
         public void solve()
         {
-            initilizePaths(N);
-            double max = 0;
-            double[] posses = calcPossibility(out max);
-            Thread[] array = new Thread[paths.Length];
-            int i = 0;
-            foreach (Bag path in paths)
+            for (int o = 0; o < iteration; o++)
             {
-                array[i] = new Thread(moveAntT);
-                array[i].Start(new mvP(path, posses, max));
-                i++;
+                initilizePaths(N);
+                double max = 0;
+                double[] posses = calcPossibility(out max);
+                Thread[] array = new Thread[paths.Length];
+                int i = 0;
+                foreach (Bag path in paths)
+                {
+                    array[i] = new Thread(moveAntT);
+                    array[i].Start(new mvP(path, posses, max));
+                    i++;
+                }
+
+                for (int k = 0; k < paths.Length; k++)
+                {
+                    array[k].Join();
+                }
+
+                foreach (Bag path in paths)
+                {
+                    updatePheramones(path);
+                }
             }
 
-            for (int k = 0; k < paths.Length; k++)
-            {
-                array[k].Join();
-            }
-
-            foreach (Bag path in paths)
-            {
-                updatePheramones(path);
-            }
+         
         }
 
 
         private void updatePheramone(Item i, double value)
         {
-            pheramones[i.pos] = pheramones[i.pos] + (Q/value);
+            pheramones[i.pos] = pheramones[i.pos] + (1-p)*(Q/value);
         }
 
         private void updatePheramones(Bag path)
